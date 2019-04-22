@@ -242,6 +242,73 @@ public class StatusBarUtils {
     }
 
     /**
+     * 设置状态栏字符颜色是否变为深
+     * @param activity
+     * @param isLight
+     */
+    public static void setStatusBarLightStatus(Activity activity, boolean isLight) {
+        if (isLight) {
+            OSInfo.OSType osType = OSInfo.getRomType(activity);
+            Window window = activity.getWindow();
+            View decorView = window.getDecorView();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                int systemUiVisibility = window.getDecorView().getSystemUiVisibility();
+                systemUiVisibility |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                decorView.setSystemUiVisibility(systemUiVisibility);
+            } else if (osType == OSInfo.OSType.OS_TYPE_MIUI) {
+                Class<? extends Window> clazz = window.getClass();
+                try {
+                    int darkModeFlag = 0;
+                    Class<?> layoutParams = Class.forName("android.view.MiuiWindowManager$LayoutParams");
+                    Field field = layoutParams.getField("EXTRA_FLAG_STATUS_BAR_DARK_MODE");
+                    darkModeFlag = field.getInt(layoutParams);
+                    Method extraFlagField = clazz.getMethod("setExtraFlags", int.class, int.class);
+                    extraFlagField.invoke(window, true ? darkModeFlag : 0, darkModeFlag);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (osType == OSInfo.OSType.OS_TYPE_FLYME) {
+                FlymeStatusbarColorUtils.setStatusBarDarkIcon(activity, true);
+            } else if (osType == OSInfo.OSType.OS_TYPE_COLOR && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                int systemUiVisibility = window.getDecorView().getSystemUiVisibility();
+                systemUiVisibility |= SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT;
+                decorView.setSystemUiVisibility(systemUiVisibility);
+            }
+        } else {
+            OSInfo.OSType osType = OSInfo.getRomType(activity);
+            Window window = activity.getWindow();
+            View decorView = window.getDecorView();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                int systemUiVisibility = window.getDecorView().getSystemUiVisibility();
+                systemUiVisibility &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                decorView.setSystemUiVisibility(systemUiVisibility);
+            } else if (osType == OSInfo.OSType.OS_TYPE_MIUI) {
+                Class<? extends Window> clazz = window.getClass();
+                try {
+                    int darkModeFlag = 0;
+                    Class<?> layoutParams = Class.forName("android.view.MiuiWindowManager$LayoutParams");
+                    Field field = layoutParams.getField("EXTRA_FLAG_STATUS_BAR_DARK_MODE");
+                    darkModeFlag = field.getInt(layoutParams);
+                    Method extraFlagField = clazz.getMethod("setExtraFlags", int.class, int.class);
+                    extraFlagField.invoke(window, false ? darkModeFlag : 0, darkModeFlag);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (osType == OSInfo.OSType.OS_TYPE_FLYME) {
+                FlymeStatusbarColorUtils.setStatusBarDarkIcon(activity, false);
+            } else if (osType == OSInfo.OSType.OS_TYPE_COLOR && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                int systemUiVisibility = window.getDecorView().getSystemUiVisibility();
+                systemUiVisibility &= ~SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT;
+                decorView.setSystemUiVisibility(systemUiVisibility);
+            }
+        }
+    }
+
+    /**
      * 获取状态栏颜色
      * 5.0以上所有机型可以正常获取,5.0以下机型统一返回黑色
      * @param activity
