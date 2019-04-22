@@ -10,6 +10,15 @@
     android:padding="10dp"
     tools:context=".MainActivity">
 
+    <Button
+        android:id="@+id/btn5"
+        android:layout_marginTop="10dp"
+        android:paddingBottom="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="白色状态栏+图片沉浸式Tab切换实例"/>
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -51,13 +60,5 @@
             android:layout_height="wrap_content"
             android:text="图片沉浸式+状态栏字符深色"/>
     </LinearLayout>
-
-    <Button
-        android:id="@+id/btn5"
-        android:layout_marginTop="10dp"
-        android:layout_width="120dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Tab切换例子"/>
 
 </LinearLayout>

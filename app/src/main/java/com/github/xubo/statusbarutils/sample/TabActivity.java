@@ -19,9 +19,9 @@ import java.util.List;
  * Description：
  */
 public class TabActivity extends AppCompatActivity {
-    public FragmentManager fragmentManager;
-    public boolean isTransparen;
+    private FragmentManager fragmentManager;
     private RadioGroup tab_rg;
+    public boolean isTransparen;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

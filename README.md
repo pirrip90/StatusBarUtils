@@ -22,6 +22,12 @@ dependencies {
 }
 ```
 
+## 4、sample
+
+|示例|
+|:---:|
+|  <img src="https://github.com/pirrip90/StatusBarUtils/blob/master/screen/screen.gif" width = "300" height = "617"/> | 
+
 
 
 
