@@ -26,7 +26,7 @@ dependencies {
 
 |示例|
 |:---:|
-|  <img src="https://github.com/pirrip90/StatusBarUtils/blob/master/screen/screen.gif" width = "300" height = "617"/> | 
+| tab切换<br> <img src="https://github.com/pirrip90/StatusBarUtils/blob/master/screen/screen.gif" width = "300" height = "617"/> | 
 
 
 

@@ -17,7 +17,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="白色状态栏+图片沉浸式Tab切换实例"/>
+        android:text="白色状态栏+图片沉浸式Tab切换示例"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
