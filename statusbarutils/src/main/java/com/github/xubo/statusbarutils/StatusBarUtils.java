@@ -1,6 +1,5 @@
 package com.github.xubo.statusbarutils;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -22,13 +21,22 @@ import java.lang.reflect.Method;
  * Description：
  */
 public class StatusBarUtils {
+    /** oppo coloros 5.1系统该flag标记状态栏字符变深 */
+    private static final int SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT = 0x00000010;
+
     /**
      * 设置状态栏颜色
+     * 支持4.4以上的所有机型
      * @param activity
      * @param color
      */
     public static void setStatusBarColor(Activity activity, @ColorInt int color) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = activity.getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(color);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Window window = activity.getWindow();
             WindowManager.LayoutParams winParams = window.getAttributes();
             int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
@@ -43,19 +51,15 @@ public class StatusBarUtils {
                     config.getPixelInsetTop(false),
                     config.getPixelInsetRight(),
                     config.getPixelInsetBottom());
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = activity.getWindow();
-            //使状态栏导航栏可绘制
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            //清除FLAG_TRANSLUCENT_STATUS
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            //设置状态栏颜色
-            window.setStatusBarColor(color);
         }
     }
 
     /**
-     * 设置状态栏颜色,并且状态栏字符颜色变为深色
+     * 设置状态栏颜色,并且状态栏字符颜色变为深
+     * 支持6.0以上的普通机型
+     * 支持5.1以上的oppo机型
+     * 支持4.4以上的小米机型
+     * 支持4.4以上的魅族机型
      * @param activity
      * @param color
      */
@@ -65,16 +69,11 @@ public class StatusBarUtils {
             Window window = activity.getWindow();
             View decorView = window.getDecorView();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                //状态栏字符颜色为深色
                 decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-                //使状态栏导航栏可绘制
                 window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                //清除FLAG_TRANSLUCENT_STATUS
                 window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                //设置状态栏颜色
                 window.setStatusBarColor(color);
             } else if (osType == OSInfo.OSType.OS_TYPE_MIUI) {
-                //miui官方兼容修改法
                 Class<? extends Window> clazz = window.getClass();
                 try {
                     int darkModeFlag = 0;
@@ -86,53 +85,101 @@ public class StatusBarUtils {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                //使状态栏导航栏可绘制
                 window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                //清除FLAG_TRANSLUCENT_STATUS
                 window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                //设置状态栏颜色
                 window.setStatusBarColor(color);
             } else if (osType == OSInfo.OSType.OS_TYPE_FLYME) {
                 FlymeStatusbarColorUtils.setStatusBarDarkIcon(activity, true);
-                //使状态栏导航栏可绘制
                 window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                //清除FLAG_TRANSLUCENT_STATUS
                 window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                //设置状态栏颜色
                 window.setStatusBarColor(color);
+            } else if (osType == OSInfo.OSType.OS_TYPE_COLOR && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                decorView.setSystemUiVisibility(SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT);
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                window.setStatusBarColor(color);
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            OSInfo.OSType osType = OSInfo.getRomType(activity);
+            Window window = activity.getWindow();
+            View decorView = window.getDecorView();
+            if (osType == OSInfo.OSType.OS_TYPE_MIUI) {
+                Class<? extends Window> clazz = window.getClass();
+                try {
+                    int darkModeFlag = 0;
+                    Class<?> layoutParams = Class.forName("android.view.MiuiWindowManager$LayoutParams");
+                    Field field = layoutParams.getField("EXTRA_FLAG_STATUS_BAR_DARK_MODE");
+                    darkModeFlag = field.getInt(layoutParams);
+                    Method extraFlagField = clazz.getMethod("setExtraFlags", int.class, int.class);
+                    extraFlagField.invoke(window, true ? darkModeFlag : 0, darkModeFlag);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                WindowManager.LayoutParams winParams = window.getAttributes();
+                int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+                winParams.flags |= bits;
+                window.setAttributes(winParams);
+                SystemBarTintManager tintManager = new SystemBarTintManager(activity);
+                tintManager.setStatusBarTintEnabled(true);
+                tintManager.setStatusBarTintColor(Color.rgb(255, 53, 67));
+                SystemBarTintManager.SystemBarConfig config = tintManager.getConfig();
+                decorView.setPadding(0,
+                        config.getPixelInsetTop(false),
+                        config.getPixelInsetRight(),
+                        config.getPixelInsetBottom());
+            } else if (osType == OSInfo.OSType.OS_TYPE_FLYME) {
+                FlymeStatusbarColorUtils.setStatusBarDarkIcon(activity, true);
+                WindowManager.LayoutParams winParams = window.getAttributes();
+                int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+                winParams.flags |= bits;
+                window.setAttributes(winParams);
+                SystemBarTintManager tintManager = new SystemBarTintManager(activity);
+                tintManager.setStatusBarTintEnabled(true);
+                tintManager.setStatusBarTintColor(Color.rgb(255, 53, 67));
+                SystemBarTintManager.SystemBarConfig config = tintManager.getConfig();
+                decorView.setPadding(0,
+                        config.getPixelInsetTop(false),
+                        config.getPixelInsetRight(),
+                        config.getPixelInsetBottom());
             }
         }
     }
 
     /**
-     * 设置Activity全屏且状态栏透明,状态栏字符可见(例如图片沉浸式)
+     * 设置状态栏沉浸式
+     * 支持4.4以上的所有机型
      * @param activity
-     * @return
+     * @return 设置成功true, 设置失败false
      */
     public static boolean statusBarTransparen(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = activity.getWindow();
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            window.setStatusBarColor(Color.TRANSPARENT);
+            return true;
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Window window = activity.getWindow();
             WindowManager.LayoutParams winParams = window.getAttributes();
             int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
             winParams.flags |= bits;
             window.setAttributes(winParams);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = activity.getWindow();
-            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-            window.setStatusBarColor(Color.TRANSPARENT);
             return true;
         }
         return false;
     }
 
     /**
-     * 设置Activity全屏且状态栏透明,状态栏字符可见(例如图片沉浸式)
+     * 设置状态栏沉浸式,并且状态栏字符颜色变为深
+     * 支持6.0以上的普通机型
+     * 支持5.1以上的oppo机型
+     * 支持4.4以上的小米机型
+     * 支持4.4以上的魅族机型
      * @param activity
-     * @return
+     * @return 设置成功true, 设置失败false
      */
     public static boolean statusBarTransparenLight(Activity activity) {
-        OSInfo.OSType osType = OSInfo.getRomType(activity);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            OSInfo.OSType osType = OSInfo.getRomType(activity);
             Window window = activity.getWindow();
             View decorView = window.getDecorView();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -159,6 +206,36 @@ public class StatusBarUtils {
                 window.setStatusBarColor(Color.TRANSPARENT);
                 FlymeStatusbarColorUtils.setStatusBarDarkIcon(activity, true);
                 return true;
+            } else if (osType == OSInfo.OSType.OS_TYPE_COLOR && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT);
+                window.setStatusBarColor(Color.TRANSPARENT);
+                return true;
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            OSInfo.OSType osType = OSInfo.getRomType(activity);
+            Window window = activity.getWindow();
+            if (osType == OSInfo.OSType.OS_TYPE_MIUI) {
+                Class<? extends Window> clazz = window.getClass();
+                try {
+                    int darkModeFlag = 0;
+                    Class<?> layoutParams = Class.forName("android.view.MiuiWindowManager$LayoutParams");
+                    Field field = layoutParams.getField("EXTRA_FLAG_STATUS_BAR_DARK_MODE");
+                    darkModeFlag = field.getInt(layoutParams);
+                    Method extraFlagField = clazz.getMethod("setExtraFlags", int.class, int.class);
+                    extraFlagField.invoke(window, true ? darkModeFlag : 0, darkModeFlag);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                WindowManager.LayoutParams winParams = window.getAttributes();
+                int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+                winParams.flags |= bits;
+                window.setAttributes(winParams);
+            } else if (osType == OSInfo.OSType.OS_TYPE_FLYME) {
+                FlymeStatusbarColorUtils.setStatusBarDarkIcon(activity, true);
+                WindowManager.LayoutParams winParams = window.getAttributes();
+                int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+                winParams.flags |= bits;
+                window.setAttributes(winParams);
             }
         }
         return false;
@@ -166,16 +243,17 @@ public class StatusBarUtils {
 
     /**
      * 获取状态栏颜色
+     * 5.0以上所有机型可以正常获取,5.0以下机型统一返回黑色
      * @param activity
      * @return
      */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public static int getStatusBarColor(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             int color = activity.getWindow().getStatusBarColor();
             return color;
+        } else {
+            return Color.BLACK;
         }
-        return 0;
     }
 
     /**
@@ -188,7 +266,7 @@ public class StatusBarUtils {
         if (resourceId > 0) {
             return context.getResources().getDimensionPixelSize(resourceId);
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {  //6.0以上状态栏高度默认是24dp,以下则是25dp
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 return (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24.0f, context.getResources().getDisplayMetrics()) + 0.5f);
             } else {
                 return (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25.0f, context.getResources().getDisplayMetrics()) + 0.5f);
@@ -197,21 +275,19 @@ public class StatusBarUtils {
     }
 
     /**
-     * 判断状态栏是否隐藏(沉浸式状态栏)
+     * 判断是否沉浸式
      * @param activity
      * @return
      */
-    public static boolean isHideStatusBar(Activity activity) {
+    public static boolean isTransparen(Activity activity) {
         Window window = activity.getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && (window.getAttributes().flags & WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-                == WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS) {  //4.4及以上状态栏隐藏判断
+                == WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS) {
             return true;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {  //4.1以上状态栏隐藏判断
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             int systemUiVisibility = window.getDecorView().getSystemUiVisibility();
-            //SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN属性本质只是把Activity置顶,但状态栏依旧显示(盖在Activity之上,一般配合5.0的)
-            //一般5.0及以上会配合window.setStatusBarColor(Color.TRANSPARENT) (状态栏颜色透明)来做沉浸式状态栏
-            if (systemUiVisibility == (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) || systemUiVisibility == (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN) || systemUiVisibility == View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN) {
+            if (systemUiVisibility == (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT) || systemUiVisibility == (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) || systemUiVisibility == (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN) || systemUiVisibility == View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN) {
                 return true;
             }
         }
@@ -225,14 +301,14 @@ public class StatusBarUtils {
      */
     public static boolean isFullScreen(Activity activity) {
         Window window = activity.getWindow();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {  //4.1及以上全屏判断
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             int systemUiVisibility = window.getDecorView().getSystemUiVisibility();
             if (systemUiVisibility == View.SYSTEM_UI_FLAG_FULLSCREEN || systemUiVisibility == View.INVISIBLE) {
                 return true;
             }
         }
         if ((window.getAttributes().flags & WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                == WindowManager.LayoutParams.FLAG_FULLSCREEN) {  //通用全屏判断
+                == WindowManager.LayoutParams.FLAG_FULLSCREEN) {
             return true;
         }
         return false;
