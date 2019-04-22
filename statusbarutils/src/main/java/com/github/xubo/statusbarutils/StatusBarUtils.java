@@ -243,6 +243,10 @@ public class StatusBarUtils {
 
     /**
      * 设置状态栏字符颜色是否变为深
+     * 支持6.0以上的普通机型
+     * 支持5.1以上的oppo机型
+     * 支持所有小米机型
+     * 支持所有魅族机型
      * @param activity
      * @param isLight
      */
