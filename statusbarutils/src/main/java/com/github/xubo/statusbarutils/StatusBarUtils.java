@@ -273,45 +273,4 @@ public class StatusBarUtils {
             }
         }
     }
-
-    /**
-     * 判断是否沉浸式
-     * @param activity
-     * @return
-     */
-    public static boolean isTransparen(Activity activity) {
-        Window window = activity.getWindow();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && (window.getAttributes().flags & WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-                == WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS) {
-            return true;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            int systemUiVisibility = window.getDecorView().getSystemUiVisibility();
-            if (systemUiVisibility == (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT) || systemUiVisibility == (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) || systemUiVisibility == (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN) || systemUiVisibility == View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 判断是否全屏
-     * @param activity
-     * @return
-     */
-    public static boolean isFullScreen(Activity activity) {
-        Window window = activity.getWindow();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            int systemUiVisibility = window.getDecorView().getSystemUiVisibility();
-            if (systemUiVisibility == View.SYSTEM_UI_FLAG_FULLSCREEN || systemUiVisibility == View.INVISIBLE) {
-                return true;
-            }
-        }
-        if ((window.getAttributes().flags & WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                == WindowManager.LayoutParams.FLAG_FULLSCREEN) {
-            return true;
-        }
-        return false;
-    }
-
 }
