@@ -2,8 +2,12 @@ package com.github.xubo.statusbarutils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.text.TextUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * Author：xubo
@@ -30,67 +34,45 @@ public class OSInfo {
     public static final String OS_SP = "com_github_xubo_statusbarutils_os_sp";
 
     /** MIUI标识(小米) */
-    public static final String KEY_MIUI_VERSION_CODE = "ro.miui.ui.version.code";
-    public static final String KEY_MIUI_VERSION_NAME = "ro.miui.ui.version.name";
-    public static final String KEY_MIUI_INTERNAL_STORAGE = "ro.miui.internal.storage";
-
+    private static final String KEY_VERSION_MIUI = "ro.miui.ui.version.name";
     /** EMUI标识(华为) */
-    public static final String KEY_EMUI_VERSION_CODE = "ro.build.version.emui";
-    public static final String KEY_EMUI_API_LEVEL = "ro.build.hw_emui_api_level";
-    public static final String KEY_EMUI_CONFIG_HW_SYS_VERSION = "ro.confg.hw_systemversion";
-
+    private static final String KEY_VERSION_EMUI = "ro.build.version.emui";
     /** Flyme标识(魅族) */
-    public static final String KEY_FLYME_ID_FALG_KEY = "ro.build.display.id";
-    public static final String KEY_FLYME_ID_FALG_VALUE_KEYWORD = "Flyme";
-    public static final String KEY_FLYME_ICON_FALG = "persist.sys.use.flyme.icon";
-    public static final String KEY_FLYME_SETUP_FALG = "ro.meizu.setupwizard.flyme";
-    public static final String KEY_FLYME_PUBLISH_FALG = "ro.flyme.published";
-
+    public static final String KEY_VERSION_FLYME = "ro.meizu.setupwizard.flyme";
     /** color标识(oppo) */
-    public static final String KEY_VERSION_OPPO_CODE = "ro.build.version.opporom";
-
+    private static final String KEY_VERSION_COLOR = "ro.build.version.opporom";
     /** color标识(funtouch) */
-    public static final String KEY_VERSION_VIVO_CODE = "ro.vivo.os.version";
+    private static final String KEY_VERSION_FUNTOUCH = "ro.vivo.os.version";
 
     public static OSType getRomType(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(OS_SP, Context.MODE_PRIVATE);
         int osTypeValue = sharedPreferences.getInt("os_type", -1);
         if (osTypeValue == -1) {
-            try {
-                BuildProperties buildProperties = BuildProperties.getInstance();
-                if (buildProperties.containsKey(KEY_EMUI_VERSION_CODE) || buildProperties.containsKey(KEY_EMUI_API_LEVEL) || buildProperties.containsKey(KEY_EMUI_CONFIG_HW_SYS_VERSION)) {
-                    sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_EMUI.value).commit();
-                    return OSType.OS_TYPE_EMUI;
-                }
-                if (buildProperties.containsKey(KEY_MIUI_VERSION_CODE) || buildProperties.containsKey(KEY_MIUI_VERSION_NAME) || buildProperties.containsKey(KEY_MIUI_INTERNAL_STORAGE)) {
+            String display = Build.DISPLAY;
+            if (display.toUpperCase().contains("FLYME")) {
+                sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_FLYME.value).commit();
+                return OSType.OS_TYPE_FLYME;
+            } else {
+                if (!TextUtils.isEmpty(getProp(KEY_VERSION_MIUI))) {
                     sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_MIUI.value).commit();
                     return OSType.OS_TYPE_MIUI;
-                }
-                if (buildProperties.containsKey(KEY_FLYME_ICON_FALG) || buildProperties.containsKey(KEY_FLYME_SETUP_FALG) || buildProperties.containsKey(KEY_FLYME_PUBLISH_FALG)) {
+                } else if (!TextUtils.isEmpty(getProp(KEY_VERSION_EMUI))) {
+                    sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_EMUI.value).commit();
+                    return OSType.OS_TYPE_EMUI;
+                } else if (!TextUtils.isEmpty(getProp(KEY_VERSION_FLYME))) {
                     sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_FLYME.value).commit();
                     return OSType.OS_TYPE_FLYME;
-                }
-                if (buildProperties.containsKey(KEY_FLYME_ID_FALG_KEY)) {
-                    String romName = buildProperties.getProperty(KEY_FLYME_ID_FALG_KEY);
-                    if (romName != null && romName.contains(KEY_FLYME_ID_FALG_VALUE_KEYWORD)) {
-                        sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_FLYME.value).commit();
-                        return OSType.OS_TYPE_FLYME;
-                    }
-                }
-                if (buildProperties.containsKey(KEY_VERSION_OPPO_CODE)) {
+                } else if (!TextUtils.isEmpty(getProp(KEY_VERSION_COLOR))) {
                     sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_COLOR.value).commit();
                     return OSType.OS_TYPE_COLOR;
-                }
-                if (buildProperties.containsKey(KEY_VERSION_VIVO_CODE)) {
+                } else if (!TextUtils.isEmpty(getProp(KEY_VERSION_FUNTOUCH))) {
                     sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_FUNTOUCH.value).commit();
                     return OSType.OS_TYPE_FUNTOUCH;
+                } else {
+                    sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_OTHER.value).commit();
+                    return OSType.OS_TYPE_OTHER;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-                return OSType.OS_TYPE_OTHER;
             }
-            sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_OTHER.value).commit();
-            return OSType.OS_TYPE_OTHER;
         } else {
             OSType osType;
             switch (osTypeValue) {
@@ -118,5 +100,27 @@ public class OSInfo {
             }
             return osType;
         }
+    }
+
+    public static String getProp(String name) {
+        String line;
+        BufferedReader input = null;
+        try {
+            Process p = Runtime.getRuntime().exec("getprop " + name);
+            input = new BufferedReader(new InputStreamReader(p.getInputStream()), 1024);
+            line = input.readLine();
+            input.close();
+        } catch (IOException ex) {
+            return null;
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return line;
     }
 }
