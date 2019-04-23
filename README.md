@@ -18,7 +18,7 @@ add the dependency:
 dependencies {
     ...
     
-    implementation 'com.github.xubo.statusbarutils:StatusBarUtils:1.0.0'
+    implementation 'com.github.xubo.statusbarutils:StatusBarUtils:1.0.1'
 }
 ```
 
