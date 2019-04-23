@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.ColorInt;
+import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
@@ -47,8 +48,13 @@ public class StatusBarUtils {
             tintManager.setStatusBarTintEnabled(true);
             tintManager.setStatusBarTintColor(color);
             View contentView = decorView.findViewById(android.R.id.content);
+            boolean withActionBar = false;
+            if (activity instanceof AppCompatActivity) {
+                AppCompatActivity appCompatActivity = (AppCompatActivity) activity;
+                withActionBar = appCompatActivity.getSupportActionBar().isShowing();
+            }
             contentView.setPadding(0,
-                    tintManager.getConfig().getPixelInsetTop(false),
+                    tintManager.getConfig().getPixelInsetTop(withActionBar),
                     tintManager.getConfig().getPixelInsetRight(),
                     tintManager.getConfig().getPixelInsetBottom());
         }
@@ -123,8 +129,13 @@ public class StatusBarUtils {
                 tintManager.setStatusBarTintEnabled(true);
                 tintManager.setStatusBarTintColor(color);
                 View contentView = decorView.findViewById(android.R.id.content);
+                boolean withActionBar = false;
+                if (activity instanceof AppCompatActivity) {
+                    AppCompatActivity appCompatActivity = (AppCompatActivity) activity;
+                    withActionBar = appCompatActivity.getSupportActionBar().isShowing();
+                }
                 contentView.setPadding(0,
-                        tintManager.getConfig().getPixelInsetTop(false),
+                        tintManager.getConfig().getPixelInsetTop(withActionBar),
                         tintManager.getConfig().getPixelInsetRight(),
                         tintManager.getConfig().getPixelInsetBottom());
             } else if (osType == OSInfo.OSType.OS_TYPE_FLYME) {
@@ -137,8 +148,13 @@ public class StatusBarUtils {
                 tintManager.setStatusBarTintEnabled(true);
                 tintManager.setStatusBarTintColor(color);
                 View contentView = decorView.findViewById(android.R.id.content);
+                boolean withActionBar = false;
+                if (activity instanceof AppCompatActivity) {
+                    AppCompatActivity appCompatActivity = (AppCompatActivity) activity;
+                    withActionBar = appCompatActivity.getSupportActionBar().isShowing();
+                }
                 contentView.setPadding(0,
-                        tintManager.getConfig().getPixelInsetTop(false),
+                        tintManager.getConfig().getPixelInsetTop(withActionBar),
                         tintManager.getConfig().getPixelInsetRight(),
                         tintManager.getConfig().getPixelInsetBottom());
             }
@@ -230,12 +246,14 @@ public class StatusBarUtils {
                 int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
                 winParams.flags |= bits;
                 window.setAttributes(winParams);
+                return true;
             } else if (osType == OSInfo.OSType.OS_TYPE_FLYME) {
                 FlymeStatusbarColorUtils.setStatusBarDarkIcon(activity, true);
                 WindowManager.LayoutParams winParams = window.getAttributes();
                 int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
                 winParams.flags |= bits;
                 window.setAttributes(winParams);
+                return true;
             }
         }
         return false;
