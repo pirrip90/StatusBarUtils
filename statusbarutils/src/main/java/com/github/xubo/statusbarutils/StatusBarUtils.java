@@ -45,12 +45,12 @@ public class StatusBarUtils {
             View decorView = window.getDecorView();
             SystemBarTintManager tintManager = new SystemBarTintManager(activity);
             tintManager.setStatusBarTintEnabled(true);
-            tintManager.setStatusBarTintColor(Color.rgb(255, 53, 67));
-            SystemBarTintManager.SystemBarConfig config = tintManager.getConfig();
-            decorView.setPadding(0,
-                    config.getPixelInsetTop(false),
-                    config.getPixelInsetRight(),
-                    config.getPixelInsetBottom());
+            tintManager.setStatusBarTintColor(color);
+            View contentView = decorView.findViewById(android.R.id.content);
+            contentView.setPadding(0,
+                    tintManager.getConfig().getPixelInsetTop(false),
+                    tintManager.getConfig().getPixelInsetRight(),
+                    tintManager.getConfig().getPixelInsetBottom());
         }
     }
 
@@ -121,12 +121,12 @@ public class StatusBarUtils {
                 window.setAttributes(winParams);
                 SystemBarTintManager tintManager = new SystemBarTintManager(activity);
                 tintManager.setStatusBarTintEnabled(true);
-                tintManager.setStatusBarTintColor(Color.rgb(255, 53, 67));
-                SystemBarTintManager.SystemBarConfig config = tintManager.getConfig();
-                decorView.setPadding(0,
-                        config.getPixelInsetTop(false),
-                        config.getPixelInsetRight(),
-                        config.getPixelInsetBottom());
+                tintManager.setStatusBarTintColor(color);
+                View contentView = decorView.findViewById(android.R.id.content);
+                contentView.setPadding(0,
+                        tintManager.getConfig().getPixelInsetTop(false),
+                        tintManager.getConfig().getPixelInsetRight(),
+                        tintManager.getConfig().getPixelInsetBottom());
             } else if (osType == OSInfo.OSType.OS_TYPE_FLYME) {
                 FlymeStatusbarColorUtils.setStatusBarDarkIcon(activity, true);
                 WindowManager.LayoutParams winParams = window.getAttributes();
@@ -135,12 +135,12 @@ public class StatusBarUtils {
                 window.setAttributes(winParams);
                 SystemBarTintManager tintManager = new SystemBarTintManager(activity);
                 tintManager.setStatusBarTintEnabled(true);
-                tintManager.setStatusBarTintColor(Color.rgb(255, 53, 67));
-                SystemBarTintManager.SystemBarConfig config = tintManager.getConfig();
-                decorView.setPadding(0,
-                        config.getPixelInsetTop(false),
-                        config.getPixelInsetRight(),
-                        config.getPixelInsetBottom());
+                tintManager.setStatusBarTintColor(color);
+                View contentView = decorView.findViewById(android.R.id.content);
+                contentView.setPadding(0,
+                        tintManager.getConfig().getPixelInsetTop(false),
+                        tintManager.getConfig().getPixelInsetRight(),
+                        tintManager.getConfig().getPixelInsetBottom());
             }
         }
     }

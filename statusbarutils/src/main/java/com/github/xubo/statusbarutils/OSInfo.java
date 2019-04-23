@@ -87,6 +87,7 @@ public class OSInfo {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                return OSType.OS_TYPE_OTHER;
             }
             sharedPreferences.edit().putInt("os_type", OSType.OS_TYPE_OTHER.value).commit();
             return OSType.OS_TYPE_OTHER;
